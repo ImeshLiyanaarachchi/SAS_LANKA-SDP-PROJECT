@@ -12,8 +12,11 @@ router.post("/logout", userController.logout); // Logout User
 
 router.post("/", authenticateUser,userController.createUser);
 router.get("/", userController.getUsers);
+router.get("/role/:role", userController.getUsersByRole);
+router.get("/search/:query", userController.searchUsersByName);
 router.get("/:id", userController.getUserById);
 router.put("/:id", userController.updateUser);
 router.delete("/:id", userController.deleteUser);
+router.put("/password/:id", userController.updatePassword);
 
 module.exports = router;
