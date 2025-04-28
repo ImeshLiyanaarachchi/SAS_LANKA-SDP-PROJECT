@@ -5,27 +5,35 @@ const {
     createVehicleProfile,
     getAllVehicleProfiles,
     getVehicleProfileByNumber,
-    getVehicleProfilesByUserId,
+    getVehicleProfilesByUser,
     updateVehicleProfile,
-    deleteVehicleProfile
+    deleteVehicleProfile,
+    getDetailedVehicleProfiles,
+    getVehiclesByType
 } = require("../controller/VehicleProfileController");
 
-// Create vehicle profile (Technician only)
+// Create a new vehicle profile
 router.post("/", authenticateUser, createVehicleProfile);
 
-// Get all vehicle profiles (Admin only)
+// Get all vehicle profiles (admin sees all, users see only their own)
 router.get("/", authenticateUser, getAllVehicleProfiles);
 
-// Get vehicle profile by number (Admin or owner)
+// Get detailed vehicle profiles with full service history
+router.get("/detailed", authenticateUser, getDetailedVehicleProfiles);
+
+// Search vehicles by make/model
+router.get("/search", authenticateUser, getVehiclesByType);
+
+// Get vehicle profiles by user ID
+router.get("/user/:userId", authenticateUser, getVehicleProfilesByUser);
+
+// Get vehicle profile by vehicle number
 router.get("/:vehicleNumber", authenticateUser, getVehicleProfileByNumber);
 
-// Get vehicle profiles by user ID (Admin or owner)
-router.get("/user/:userId", authenticateUser, getVehicleProfilesByUserId);
-
-// Update vehicle profile (Admin or owner)
+// Update vehicle profile
 router.put("/:vehicleNumber", authenticateUser, updateVehicleProfile);
 
-// Delete vehicle profile (Admin or owner)
+// Delete vehicle profile
 router.delete("/:vehicleNumber", authenticateUser, deleteVehicleProfile);
 
 module.exports = router; 
