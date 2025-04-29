@@ -4,28 +4,40 @@ const { authenticateUser } = require("../middleware/AuthMiddleware");
 const {
     createServiceRecord,
     getAllServiceRecords,
+    getServiceRecordById,
     getServiceRecordsByVehicle,
-    updateServiceRecord,
-    deleteServiceRecord,
-    addPartsToService
+    getServiceRecordsByDateRange,
+    addPartsToServiceRecord,
+    deleteServicePart,
+    generateServiceInvoice,
+    getVehicleTypeServiceReport
 } = require("../controller/ServiceRecordController");
 
-// Create service record (Admin or Technician only)
+// Create new service record (with parts, inventory management, and invoice)
 router.post("/", authenticateUser, createServiceRecord);
 
-// Get all service records (Admin only)
+// Add parts to an existing service record (without invoice generation)
+router.post("/:serviceId/add-parts", authenticateUser, addPartsToServiceRecord);
+
+// Generate or update an invoice for a service record
+router.post("/:serviceId/generate-invoice", authenticateUser, generateServiceInvoice);
+
+// Delete a part from a service record
+router.delete("/:serviceId/parts/:itemId/:stockId", authenticateUser, deleteServicePart);
+
+// Get all service records
 router.get("/", authenticateUser, getAllServiceRecords);
 
-// Get service records by vehicle number (Admin or vehicle owner)
+// Get service records by date range
+router.get("/date-range", authenticateUser, getServiceRecordsByDateRange);
+
+// Get service reports by vehicle type (make/model)
+router.get("/reports/vehicle-type", authenticateUser, getVehicleTypeServiceReport);
+
+// Get service records by vehicle number
 router.get("/vehicle/:vehicleNumber", authenticateUser, getServiceRecordsByVehicle);
 
-// Add parts to service record (Admin or Technician only)
-router.post("/:recordId/parts", authenticateUser, addPartsToService);
-
-// Update service record (Admin or Technician only)
-router.put("/:recordId", authenticateUser, updateServiceRecord);
-
-// Delete service record (Admin only)
-router.delete("/:recordId", authenticateUser, deleteServiceRecord);
+// Get service record by ID
+router.get("/:serviceId", authenticateUser, getServiceRecordById);
 
 module.exports = router; 
