@@ -8,11 +8,15 @@ const {
     updateItem,
     deleteItem,
     getItemsByCategory,
-    getAllCategories
+    getAllCategories,
+    createCategory
 } = require("../controller/InventoryItemController");
 
 // Create new item (Admin only)
 router.post("/", authenticateUser, createItem);
+
+// Create new category (Admin only)
+router.post("/categories", authenticateUser, createCategory);
 
 // Get all items
 router.get("/", authenticateUser, getAllItems);

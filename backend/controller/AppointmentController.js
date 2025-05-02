@@ -317,7 +317,7 @@ exports.getAvailableTimeSlots = async (req, res) => {
                 if (err) return res.status(500).json({ message: "Server Error", error: err });
 
                 // Get booked time slots
-                const bookedSlots = results.map(row => row.appointment_time);
+                const bookedSlots = results.map(row => row.appointment_time.slice(0, 5));
                 
                 // Filter out booked slots to get available slots
                 const availableSlots = allTimeSlots.filter(slot => !bookedSlots.includes(slot));
