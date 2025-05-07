@@ -3,15 +3,15 @@ require("dotenv").config(); // Load environment variables
 const mysql = require("mysql2");
 const cookieParser = require('cookie-parser');
 
-const userRoutes = require("./backend/route/UserRoutes");
-const feedbackRoutes = require("./backend/route/FeedbackRoutes");
-const inquiryRoutes = require("./backend/route/InquiryRoutes");
-const vehicleProfileRoutes = require("./backend/route/VehicleProfileRoutes");
-const serviceRecordRoutes = require("./backend/route/ServiceRecordRoutes");
-const appointmentRoutes = require("./backend/route/AppointmentRoutes");
-const purchaseRoutes = require("./backend/route/PurchaseRoutes");
-const stockRoutes = require("./backend/route/StockRoutes");
-const inventoryItemRoutes = require("./backend/route/InventoryItemRoutes");
+const userRoutes = require("./route/UserRoutes");
+const feedbackRoutes = require("./route/FeedbackRoutes");
+const inquiryRoutes = require("./route/InquiryRoutes");
+const vehicleProfileRoutes = require("./route/VehicleProfileRoutes");
+const serviceRecordRoutes = require("./route/ServiceRecordRoutes");
+const appointmentRoutes = require("./route/AppointmentRoutes");
+const purchaseRoutes = require("./route/PurchaseRoutes");
+const stockRoutes = require("./route/StockRoutes");
+const inventoryItemRoutes = require("./route/InventoryItemRoutes");
 
 // ✅ Create Express App
 const app = express();
