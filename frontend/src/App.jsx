@@ -1,35 +1,31 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-
+import { Routes, Route, useLocation } from 'react-router-dom';
+import Login from './assets/components/Login';
+import SignUp from './assets/components/SignUp';
+import Home from './assets/components/Home';
 function App() {
-  const [count, setCount] = useState(0)
+  const location = useLocation();
+  // Update the paths where Navbar should be hidden
+  const hideNavbarPaths = [
+    '/login',
+    '/signup',
+  ];
+
+  // Check if the path starts with any of the above paths
+  const shouldHideNavbar = hideNavbarPaths.some(path => 
+    location.pathname === path || 
+    (path.endsWith('/') && location.pathname.startsWith(path))
+  );
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <div className="min-h-screen bg-black">
+      {!shouldHideNavbar && <Navbar />}
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<SignUp />} />
+      </Routes>
+    </div>
+  );
 }
 
-export default App
+export default App;
