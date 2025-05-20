@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { UserOutlined } from '@ant-design/icons';
+import { UserOutlined, StarOutlined, QuestionCircleOutlined } from '@ant-design/icons';
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -10,7 +10,7 @@ const Navbar = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      setIsScrolled(window.scrollY > 10);
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -24,13 +24,29 @@ const Navbar = () => {
   }, []);
 
   const handleProfileClick = () => {
-    navigate('/profile');
+    if (isAuthenticated) {
+      navigate('/profile');
+    } else {
+      navigate('/login');
+    }
+    setIsMobileMenuOpen(false);
+  };
+
+  const handleAuthenticatedNavigation = (path) => {
+    if (isAuthenticated) {
+      navigate(path);
+    } else {
+      // Redirect to login if not authenticated
+      navigate('/login');
+    }
     setIsMobileMenuOpen(false);
   };
 
   return (
-    <nav className={`fixed w-full z-50 transition-all duration-300 ${
-      isScrolled ? 'bg-black/80 backdrop-blur-lg' : 'bg-transparent'
+    <nav className={`fixed w-full z-50 transition-all duration-500 ${
+      isScrolled 
+        ? 'bg-black/0 backdrop-blur-md shadow-lg' 
+        : 'bg-gradient-to-b from-black/0 to-transparent backdrop-blur-sm'
     }`}>
       <div className="w-full px-4">
         <div className="flex items-center justify-between h-24">
@@ -52,19 +68,43 @@ const Navbar = () => {
             <Link to="/services" className="text-lg text-white hover:text-green-400 transition-colors duration-300">
               Services
             </Link>
-            <Link to="/appointments" className="text-lg text-white hover:text-green-400 transition-colors duration-300">
+            
+            {/* Restricted links that should check authentication */}
+            <button 
+              onClick={() => handleAuthenticatedNavigation('/appointments')} 
+              className="text-lg text-white hover:text-green-400 transition-colors duration-300 bg-transparent border-none cursor-pointer"
+            >
               Appointments
-            </Link>
-            <Link to="/my-vehicles" className="text-lg text-white hover:text-green-400 transition-colors duration-300">
+            </button>
+            
+            <button 
+              onClick={() => handleAuthenticatedNavigation('/my-vehicles')} 
+              className="text-lg text-white hover:text-green-400 transition-colors duration-300 bg-transparent border-none cursor-pointer"
+            >
               My Vehicles
-            </Link>
+            </button>
+            
+            <button 
+              onClick={() => handleAuthenticatedNavigation('/feedback')}
+              className="flex items-center justify-center text-lg text-white hover:text-green-400 transition-colors duration-300 bg-transparent border-none cursor-pointer"
+            >
+              <span className="ml-2">Feedback</span>
+            </button>
+            
+            <button 
+              onClick={() => handleAuthenticatedNavigation('/inquiries')}
+              className="flex items-center justify-center text-lg text-white hover:text-green-400 transition-colors duration-300 bg-transparent border-none cursor-pointer"
+            >
+
+              <span className="ml-2">Support</span>
+            </button>
             
             {isAuthenticated ? (
               <button 
                 onClick={handleProfileClick}
-                className="flex items-center justify-center text-lg text-white hover:text-green-400 transition-colors duration-300"
+                className="flex items-center justify-center text-lg text-white hover:text-green-400 transition-colors duration-300 bg-transparent border-none cursor-pointer"
               >
-                <UserOutlined className="text-xl" />
+
                 <span className="ml-2">Profile</span>
               </button>
             ) : (
@@ -132,23 +172,42 @@ const Navbar = () => {
             >
               Services
             </Link>
-            <Link
-              to="/appointments"
-              className="block px-3 py-2 text-lg text-white hover:text-green-400 transition-colors duration-300"
+            
+            {/* Restricted links that should check authentication */}
+            <button
+              onClick={() => handleAuthenticatedNavigation('/appointments')}
+              className="block w-full text-left px-3 py-2 text-lg text-white hover:text-green-400 transition-colors duration-300 bg-transparent border-none cursor-pointer"
             >
               Appointments
-            </Link>
-            <Link
-              to="/my-vehicles"
-              className="block px-3 py-2 text-lg text-white hover:text-green-400 transition-colors duration-300"
+            </button>
+            
+            <button
+              onClick={() => handleAuthenticatedNavigation('/my-vehicles')}
+              className="block w-full text-left px-3 py-2 text-lg text-white hover:text-green-400 transition-colors duration-300 bg-transparent border-none cursor-pointer"
             >
               My Vehicles
-            </Link>
+            </button>
+            
+            <button
+              onClick={() => handleAuthenticatedNavigation('/feedback')}
+              className="flex items-center w-full text-left px-3 py-2 text-lg text-white hover:text-green-400 transition-colors duration-300 bg-transparent border-none cursor-pointer"
+            >
+              <StarOutlined className="text-xl mr-2" />
+              Feedback
+            </button>
+            
+            <button
+              onClick={() => handleAuthenticatedNavigation('/inquiries')}
+              className="flex items-center w-full text-left px-3 py-2 text-lg text-white hover:text-green-400 transition-colors duration-300 bg-transparent border-none cursor-pointer"
+            >
+              <QuestionCircleOutlined className="text-xl mr-2" />
+              Support
+            </button>
             
             {isAuthenticated ? (
               <button
                 onClick={handleProfileClick}
-                className="flex items-center w-full text-left px-3 py-2 text-lg text-white hover:text-green-400 transition-colors duration-300"
+                className="flex items-center w-full text-left px-3 py-2 text-lg text-white hover:text-green-400 transition-colors duration-300 bg-transparent border-none cursor-pointer"
               >
                 <UserOutlined className="text-xl mr-2" />
                 Profile

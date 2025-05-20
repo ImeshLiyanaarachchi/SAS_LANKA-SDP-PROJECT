@@ -181,6 +181,11 @@ const AdminInventoryItem = () => {
   };
 
   const handleEdit = (record) => {
+    console.log("Editing record:", record); // Debug log
+    if (!record || !record.item_id) {
+      toast.error("Invalid item data");
+      return;
+    }
     setEditingItem(record);
     form.setFieldsValue({
       item_name: record.item_name,
@@ -189,6 +194,7 @@ const AdminInventoryItem = () => {
       brand: record.brand,
       unit: record.unit,
       restock_level: record.restock_level,
+      current_selling_price: record.current_selling_price
     });
     setModalVisible(true);
   };
@@ -222,22 +228,19 @@ const AdminInventoryItem = () => {
     try {
       const values = await form.validateFields();
 
-      // Format the data to send to the API
+      // Format the data to send to the API, ensuring no undefined values
       const formData = {
-        item_name: values.item_name,
-        item_description: values.item_description,
-        category:
-          values.category ||
-          (values.category_id
-            ? categories.find((c) => c.category_id === values.category_id)
-                ?.category
-            : ""),
-        brand: values.brand,
-        unit: values.unit,
-        restock_level: values.restock_level,
+        item_id:editingItem.item_id,
+        item_name: values.item_name || "",
+        item_description: values.item_description || "",
+        category: values.category || "",
+        brand: values.brand || "",
+        unit: values.unit || "",
+        restock_level: values.restock_level ? parseInt(values.restock_level) : 0,
       };
 
-      if (editingItem) {
+      if (editingItem && editingItem.item_id) {
+        console.log("Updating item with ID:", editingItem.item_id); // Debug log
         await axios.put(
           `http://localhost:3000/api/inventory-items/${editingItem.item_id}`,
           formData,
@@ -250,6 +253,9 @@ const AdminInventoryItem = () => {
           }
         );
         toast.success("Item updated successfully");
+      } else if (editingItem) {
+        toast.error("Missing item ID for update");
+        return;
       } else {
         await axios.post(
           "http://localhost:3000/api/inventory-items",
@@ -655,41 +661,59 @@ const AdminInventoryItem = () => {
       {/* Item Modal */}
       <Modal
         title={
-          <Title level={4}>
+          <Title level={4} style={{ fontSize: "24px" }}>
             {editingItem ? "Edit Item" : "Add New Item"}
           </Title>
         }
         open={modalVisible}
         onOk={handleModalOk}
         onCancel={() => setModalVisible(false)}
-        width={600}
+        width={850}
+        className="styled-modal"
         centered
       >
-        <Form form={form} layout="vertical">
+        <Form form={form} className="item-form" layout="vertical">
           <Form.Item
             name="item_name"
-            label="Item Name"
-            rules={[{ required: true, message: "Please enter item name" }]}
+            label={<span style={{ fontSize: "19px" }}>Item Name</span>}
+            rules={[
+              { required: true, message: "Please enter item name" },
+              {
+                pattern: /^[A-Za-z0-9 ]{3,100}$/,
+                message:
+                  "Only letters, numbers, and spaces are allowed(No less than two letters)",
+              },
+            ]}
           >
-            <Input size="large" className="modal-input" />
+            <Input
+              size="large"
+              placeholder="Enter item name"
+              style={{ fontSize: "18px", height: "45px" }}
+            />
           </Form.Item>
 
           <Form.Item
             name="item_description"
-            label="Description"
+            label={<span style={{ fontSize: "19px" }}>Description</span>}
           >
-            <Input.TextArea rows={4} className="modal-input" />
+            <Input.TextArea
+              rows={4}
+              placeholder="Enter item description"
+              style={{ fontSize: "18px" }}
+            />
           </Form.Item>
 
           <Form.Item
             name="category"
-            label="Category"
+            label={<span style={{ fontSize: "19px" }}>Category</span>}
             rules={[{ required: true, message: "Please select a category" }]}
           >
             <Select
               size="large"
               placeholder="Select a category"
-              className="modal-select"
+              style={{ fontSize: "18px", height: "45px" }}
+              dropdownStyle={{ fontSize: "16px" }}
+              className="custom-select"
             >
               {categories.map((category) => (
                 <Option key={category.category_id} value={category.category}>
@@ -701,35 +725,57 @@ const AdminInventoryItem = () => {
 
           <Form.Item
             name="brand"
-            label="Brand"
-          >
-            <Input size="large" className="modal-input" />
-          </Form.Item>
-
-          <Form.Item
-            name="unit"
-            label="Unit"
-            rules={[{ required: true, message: "Please enter the unit" }]}
+            label={<span style={{ fontSize: "19px" }}>Brand</span>}
           >
             <Input
               size="large"
-              placeholder="e.g., Piece, Bottle, Liter"
-              className="modal-input"
+              placeholder="Enter brand"
+              style={{ fontSize: "18px", height: "45px" }}
             />
           </Form.Item>
 
           <Form.Item
-            name="restock_level"
-            label="Restock Level"
+            name="unit"
+            label={<span style={{ fontSize: "19px" }}>Unit</span>}
             rules={[
-              { required: true, message: "Please enter restock level" },
+              { required: true, message: "Please enter the unit" },
+              {
+                validator: (_, value) => {
+                  if (!value) return Promise.resolve();
+
+                  const isOnlyOneDigit = /^\d$/.test(value);
+                  const hasAtLeast2Letters = /[A-Za-z].*[A-Za-z]/.test(value);
+
+                  if (isOnlyOneDigit) {
+                    return Promise.reject("Unit cannot be a single number");
+                  }
+                  if (!hasAtLeast2Letters) {
+                    return Promise.reject(
+                      "Unit must contain at least 2 letters"
+                    );
+                  }
+                  return Promise.resolve();
+                },
+              },
             ]}
           >
             <Input
               size="large"
+              placeholder="e.g., Piece, Bottle, Liter"
+              style={{ fontSize: "18px", height: "45px" }}
+            />
+          </Form.Item>
+          <Form.Item
+            name="restock_level"
+            label={<span style={{ fontSize: "19px" }}>Restock Level</span>}
+            rules={[{ required: true, message: "Please enter restock level" }]}
+          >
+            <Input
+              size="large"
               type="number"
-              min={0}
-              className="modal-input"
+              placeholder="Enter minimum restock level"
+              min={1}
+              style={{ fontSize: "18px", height: "45px" }}
             />
           </Form.Item>
         </Form>
@@ -737,27 +783,48 @@ const AdminInventoryItem = () => {
 
       {/* Category Modal */}
       <Modal
-        title={<Title level={4}>Add New Category</Title>}
+        title={
+          <Title level={4} style={{ fontSize: "24px" }}>
+            Add New Category
+          </Title>
+        }
         open={categoryModalVisible}
         onOk={handleCreateCategory}
         onCancel={() => setCategoryModalVisible(false)}
-        width={500}
+        width={800}
         centered
+        className="category-model"
       >
         <Form form={categoryForm} layout="vertical">
           <Form.Item
             name="category"
-            label="Category Name"
+            label={
+              <span style={{ fontSize: "19px", fontWeight: "500" }}>
+                Category Name
+              </span>
+            }
             rules={[{ required: true, message: "Please enter category name" }]}
           >
-            <Input size="large" className="modal-input" />
+            <Input
+              size="large"
+              placeholder="Enter category name"
+              style={{ fontSize: "18px", height: "44px" }}
+            />
           </Form.Item>
 
           <Form.Item
             name="description"
-            label="Description"
+            label={
+              <span style={{ fontSize: "19px", fontWeight: "500" }}>
+                Description
+              </span>
+            }
           >
-            <Input.TextArea rows={4} className="modal-input" />
+            <Input.TextArea
+              rows={4}
+              placeholder="Enter category description"
+              style={{ fontSize: "18px" }}
+            />
           </Form.Item>
         </Form>
       </Modal>
@@ -823,20 +890,42 @@ const AdminInventoryItem = () => {
             color: #333;
         }
         
-        /* Search and buttons */
-        .inventory-search {
-            width: 350px;
-        }
-        
-        .inventory-search input {
-            height: 40px;
-            font-size: 18px;
-        }
+/* Wrapper that controls overall group */
+.inventory-search.ant-input-group-wrapper {
+  height: 50px !important;
+  width: 400px !important; 
+}
+
+/* Inner affix wrapper that controls input field */
+.inventory-search .ant-input-affix-wrapper {
+  height: 50px !important;
+  display: flex;
+  align-items: center;
+  font-size: 18px;
+  padding: 0 12px;
+}
+
+/* The input itself */
+.inventory-search .ant-input {
+  font-size: 18px;
+  height: 48px !important; /* slightly less to fit inside wrapper */
+  line-height: 48px;
+}
+
+/* Search icon/button */
+.inventory-search .ant-input-group-addon .ant-btn {
+  height: 50px !important;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+}
         
         .category-button,
         .report-button,
         .add-button {
-            height: 40px;
+            height: 50px;
             font-size: 18px;
             padding: 0 20px;
         }
@@ -879,10 +968,41 @@ const AdminInventoryItem = () => {
         .modal-select {
             font-size: 18px;
         }
-        
-        .ant-input-number {
-            width: 100%;
-        }
+/* Wrapper class for your form */
+.item-form .ant-select-selector {
+  font-size: 18px !important;
+  height: 44px !important;
+  display: flex;
+  align-items: center;
+}
+
+/* Dropdown panel */
+.ant-select-dropdown {
+  font-size: 18px !important; /* Overall dropdown font size */
+}
+
+/* Individual options inside dropdown */
+.ant-select-item {
+  font-size: 18px !important;
+  padding: 10px 16px !important; /* Increase spacing */
+  line-height: 1.6 !important;
+}
+     .styled-modal .ant-btn-primary, 
+.styled-modal .ant-btn-default {
+  height: 44px !important;
+  font-size: 16px !important;
+  padding: 0 24px !important;
+  border-radius: 6px;
+}
+   .category-model .ant-btn-primary, 
+.category-model .ant-btn-default {
+  height: 44px !important;
+  font-size: 16px !important;
+  padding: 0 24px !important;
+  border-radius: 6px;
+}
+
+
       `}</style>
     </>
   );

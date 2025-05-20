@@ -1,0 +1,57 @@
+/* Custom styles for Rate component to ensure stars are always visible */
+.custom-rate .ant-rate-star {
+  color: #666 !important; /* Darker gray for empty stars to be more visible */
+  margin-right: 8px;
+}
+
+.custom-rate .ant-rate-star-first,
+.custom-rate .ant-rate-star-second {
+  color: #666 !important; /* Base color for all stars */
+}
+
+.custom-rate .ant-rate-star-full .ant-rate-star-second,
+.custom-rate .ant-rate-star-half .ant-rate-star-first {
+  color: #ffce3d !important; /* Bright yellow color for filled stars */
+  text-shadow: 0 0 5px rgba(255, 206, 61, 0.5); /* Add glow effect */
+}
+
+.custom-rate-wrapper {
+  display: inline-block;
+  background-color: transparent;
+  padding: 5px 0;
+}
+
+.custom-rate .anticon {
+  font-size: 28px; /* Larger stars */
+}
+
+/* Ensure star outlines are visible */
+.custom-rate .ant-rate-star-first,
+.custom-rate .ant-rate-star-second {
+  transition: all 0.3s;
+}
+
+/* Hover effect */
+.custom-rate:not(.ant-rate-disabled) .ant-rate-star:hover {
+  transform: scale(1.1);
+}
+
+/* Make the count text white */
+.ant-input-show-count-suffix {
+  color: #8b8fa3 !important;
+}
+
+/* Override Ant Design's default styles for better visibility */
+.ant-rate {
+  color: #ffce3d;
+}
+
+/* Force stars to be visible */
+.ant-rate-star svg {
+  fill: #666 !important;
+}
+
+.ant-rate-star-full svg,
+.ant-rate-star-half .ant-rate-star-first svg {
+  fill: #ffce3d !important;
+} 

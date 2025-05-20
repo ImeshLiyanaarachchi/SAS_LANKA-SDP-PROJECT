@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import loginImg1 from '../images/login bg.jpg';
+import loginImg1 from '../images/loginbg.jpg';
 import axios from 'axios';
 
 const Login = () => {
