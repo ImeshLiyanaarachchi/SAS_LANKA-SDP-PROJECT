@@ -295,128 +295,65 @@ exports.updateItem = async (req, res) => {
             return res.status(401).json({ message: "Unauthorized: User not found in request" });
         }
 
-        const itemId = req.params.id;
-        const { item_name, item_description, category, brand, unit, restock_level, current_selling_price } = req.body;
+        const itemId = req.body.item_id;
+        console.log("Updating item ID:", itemId);
+        
+        if (!itemId) {
+            return res.status(400).json({ message: "Item ID is required" });
+        }
+
+        // Extract values from request body with default values
+        const {
+            item_name = "",
+            item_description = "",
+            category = "",
+            brand = "",
+            unit = "",
+            restock_level = 0,
+        } = req.body;
+
+        // Validate required fields
+        if (!item_name) {
+            return res.status(400).json({ message: "Item name is required" });
+        }
+
         const db = req.db;
 
-        // Check if we're using the new schema with item_category table
-        db.execute("SHOW TABLES LIKE 'item_category'", (tableErr, tableResults) => {
-            if (tableErr) {
-                console.error("Error checking for item_category table:", tableErr);
-                return res.status(500).json({ message: "Server Error", error: tableErr });
+        // Direct update query
+        let query = `
+            UPDATE inventory_item 
+            SET item_name = ?, 
+                item_description = ?, 
+                category = ?, 
+                brand = ?, 
+                unit = ?, 
+                restock_level = ?
+            WHERE item_id = ?
+        `;
+        
+        const params = [
+            item_name,
+            item_description,
+            category,
+            brand,
+            unit,
+            restock_level,
+            itemId
+        ];
+        
+        db.execute(query, params, (err, results) => {
+            if (err) {
+                console.error("Error updating item:", err);
+                return res.status(500).json({ message: "Server Error", error: err });
             }
-
-            if (tableResults && tableResults.length > 0) {
-                // The item_category table exists, check if the category exists
-                db.execute(
-                    "SELECT category_id FROM item_category WHERE category = ?",
-                    [category],
-                    (categoryErr, categoryResults) => {
-                        if (categoryErr) {
-                            console.error("Error checking category:", categoryErr);
-                            return res.status(500).json({ message: "Server Error", error: categoryErr });
-                        }
-
-                        let categoryId;
-                        
-                        if (categoryResults.length === 0) {
-                            // Create new category
-                            db.execute(
-                                "INSERT INTO item_category (category) VALUES (?)",
-                                [category],
-                                (insertCategoryErr, insertCategoryResults) => {
-                                    if (insertCategoryErr) {
-                                        console.error("Error creating category:", insertCategoryErr);
-                                        return res.status(500).json({ message: "Server Error", error: insertCategoryErr });
-                                    }
-                                    
-                                    categoryId = insertCategoryResults.insertId;
-                                    updateItem(categoryId);
-                                }
-                            );
-                        } else {
-                            categoryId = categoryResults[0].category_id;
-                            updateItem(categoryId);
-                        }
-
-                        function updateItem(categoryId) {
-                            // Update the item
-                            let query = `
-                                UPDATE inventory_item 
-                                SET item_name = ?, 
-                                    item_description = ?, 
-                                    category = ?,
-                                    brand = ?, 
-                                    unit = ?, 
-                                    restock_level = ?
-                            `;
-                            
-                            const params = [item_name, item_description, category, brand, unit, restock_level];
-                            
-                            // Add price update if provided
-                            if (current_selling_price !== undefined) {
-                                query += `, current_selling_price = ?`;
-                                params.push(current_selling_price);
-                            }
-                            
-                            query += ` WHERE item_id = ?`;
-                            params.push(itemId);
-                            
-                            db.execute(query, params, (err, results) => {
-                                if (err) {
-                                    console.error("Error updating item:", err);
-                                    return res.status(500).json({ message: "Server Error", error: err });
-                                }
-                                
-                                if (results.affectedRows === 0) {
-                                    return res.status(404).json({ message: "Item not found" });
-                                }
-                                
-                                res.status(200).json({
-                                    message: "Inventory item updated successfully"
-                                });
-                            });
-                        }
-                    }
-                );
-            } else {
-                // If item_category table doesn't exist, use the direct category approach
-                let query = `
-                    UPDATE inventory_item 
-                    SET item_name = ?, 
-                        item_description = ?, 
-                        category = ?, 
-                        brand = ?, 
-                        unit = ?, 
-                        restock_level = ?
-                `;
-                
-                const params = [item_name, item_description, category, brand, unit, restock_level];
-                
-                // Add price update if provided
-                if (current_selling_price !== undefined) {
-                    query += `, current_selling_price = ?`;
-                    params.push(current_selling_price);
-                }
-                
-                query += ` WHERE item_id = ?`;
-                params.push(itemId);
-                
-                db.execute(query, params, (err, results) => {
-                    if (err) {
-                        console.error("Error updating item:", err);
-                        return res.status(500).json({ message: "Server Error", error: err });
-                    }
-                    
-                    if (results.affectedRows === 0) {
-                        return res.status(404).json({ message: "Item not found" });
-                    }
-                    
-                    res.status(200).json({
-                        message: "Inventory item updated successfully"
-                    });
-                });
+            
+            if (results.affectedRows === 0) {
+                return res.status(404).json({ message: "Item not found" });
             }
+            
+            res.status(200).json({
+                message: "Inventory item updated successfully"
+            });
         });
     } catch (error) {
         console.error("General error in updateItem:", error);

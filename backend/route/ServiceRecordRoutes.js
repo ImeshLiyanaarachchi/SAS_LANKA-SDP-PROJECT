@@ -10,7 +10,8 @@ const {
     addPartsToServiceRecord,
     deleteServicePart,
     generateServiceInvoice,
-    getVehicleTypeServiceReport
+    getVehicleTypeServiceReport,
+    updateServiceRecord
 } = require("../controller/ServiceRecordController");
 
 // Create new service record (with parts, inventory management, and invoice)
@@ -39,5 +40,8 @@ router.get("/vehicle/:vehicleNumber", authenticateUser, getServiceRecordsByVehic
 
 // Get service record by ID
 router.get("/:serviceId", authenticateUser, getServiceRecordById);
+
+// Update service record
+router.put("/:serviceId", authenticateUser, updateServiceRecord);
 
 module.exports = router; 

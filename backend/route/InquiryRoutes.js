@@ -1,35 +1,35 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { authenticateUser } = require('../middleware/AuthMiddleware');
+const { authenticateUser } = require("../middleware/AuthMiddleware");
 const {
     createInquiry,
     getAllInquiries,
-    getInquiryById,
     getInquiriesByUserId,
-    takeInquiry,
+    getInquiryById,
+    respondToInquiry,
     updateInquiryStatus,
     deleteInquiry
-} = require('../controller/InquiryController');
+} = require("../controller/InquiryController");
 
-// Create new inquiry (requires authentication)
-router.post('/', authenticateUser, createInquiry);
+// Create inquiry (Any authenticated user)
+router.post("/", authenticateUser, createInquiry);
 
-// Get all inquiries (admin only)
-router.get('/', authenticateUser, getAllInquiries);
+// Get all inquiries (Admin only)
+router.get("/", authenticateUser, getAllInquiries);
 
-// Get inquiry by ID
-router.get('/:id', authenticateUser, getInquiryById);
+// Get inquiries by user ID (Admin or owner)
+router.get("/user/:userId", authenticateUser, getInquiriesByUserId);
 
-// Get inquiries by user ID
-router.get('/user/:userId', authenticateUser, getInquiriesByUserId);
+// Get a specific inquiry (Admin or owner)
+router.get("/:inquiryId", authenticateUser, getInquiryById);
 
-// Technician takes an inquiry
-router.post('/:id/take', authenticateUser, takeInquiry);
+// Respond to inquiry (Admin only)
+router.post("/:inquiryId/respond", authenticateUser, respondToInquiry);
 
-// Technician updates inquiry status
-router.put('/:id/status', authenticateUser, updateInquiryStatus);
+// Update inquiry status (Admin only)
+router.patch("/:inquiryId/status", authenticateUser, updateInquiryStatus);
 
-// Delete inquiry (admin only)
-router.delete('/:id', authenticateUser, deleteInquiry);
+// Delete inquiry (Admin only)
+router.delete("/:inquiryId", authenticateUser, deleteInquiry);
 
 module.exports = router; 

@@ -1,14 +1,13 @@
 const jwt = require('jsonwebtoken');
 
 const authenticateUser = (req, res, next) => {
-    console.log("MEKAAAAA");
     try {
         const token = req.cookies.token || req.header("Authorization")?.replace("Bearer ", "");
 
         if (!token) {
             return res.status(401).json({ message: "Unauthorized: No token provided" });
         }
-        console.log("APPATA MEKATH RUN WENW");
+
 
         jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
             if (err) {

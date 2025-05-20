@@ -269,10 +269,10 @@ exports.deletePurchase = async (req, res) => {
 
                 // Check if corresponding inventory stock has been used
                 const [stockResult] = await db.promise().execute(
-                    `SELECT is.stock_id, is.available_qty, 
-                            (SELECT COUNT(*) FROM service_parts_used WHERE stock_id = is.stock_id) as usage_count
-                     FROM inventory_stock is 
-                     WHERE is.purchase_id = ?`,
+                    `SELECT invs.stock_id, invs.available_qty, 
+                            (SELECT COUNT(*) FROM service_parts_used WHERE stock_id = invs.stock_id) as usage_count
+                     FROM inventory_stock invs 
+                     WHERE invs.purchase_id = ?`,
                     [purchaseId]
                 );
 

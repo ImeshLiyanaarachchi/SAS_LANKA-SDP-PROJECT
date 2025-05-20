@@ -22,7 +22,7 @@ exports.getUsersDueForService = async (req, res) => {
     }
 
     // Check if user is admin
-    if (req.user.role !== 'admin') {
+    if (req.user.role !== 'admin' && req.user.role !== 'technician') {
       return res.status(403).json({ message: "Forbidden: Only admin can access service reminders" });
     }
 
@@ -80,7 +80,7 @@ exports.sendServiceReminders = async (req, res) => {
     }
 
     // Check if user is admin
-    if (req.user.role !== 'admin') {
+    if (req.user.role !== 'admin' && req.user.role !== 'technician') {
       return res.status(403).json({ message: "Forbidden: Only admin can send service reminders" });
     }
 
@@ -159,7 +159,7 @@ exports.sendCustomEmails = async (req, res) => {
     }
 
     // Check if user is admin
-    if (req.user.role !== 'admin') {
+    if (req.user.role !== 'admin' && req.user.role !== 'technician') {
       return res.status(403).json({ message: "Forbidden: Only admin can send custom emails" });
     }
 

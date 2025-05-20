@@ -358,6 +358,11 @@ exports.addPartsToServiceRecord = async (req, res) => {
                 if (serviceResult.length === 0) {
                     throw new Error("Service record not found");
                 }
+                
+                // Check if service is already completed
+                if (serviceResult[0].status === 'completed') {
+                    throw new Error("This service record is already completed and cannot be modified");
+                }
 
                 let partsTotalPrice = 0;
                 let partsUsed = [];
@@ -593,8 +598,13 @@ exports.deleteServicePart = async (req, res) => {
                 if (serviceResult.length === 0) {
                     throw new Error("Service record not found");
                 }
+                
+                // 2. Check if service is already completed
+                if (serviceResult[0].status === 'completed') {
+                    throw new Error("This service record is already completed and cannot be modified");
+                }
 
-                // 2. Get the part being deleted to know the quantity
+                // 3. Get the part being deleted to know the quantity
                 const [partResult] = await db.promise().execute(
                     `SELECT * FROM service_parts_used 
                      WHERE service_id = ? AND stock_id = ? AND item_id = ?`,
@@ -607,21 +617,21 @@ exports.deleteServicePart = async (req, res) => {
 
                 const { quantity_used } = partResult[0];
 
-                // 3. Delete the service_parts_used record
+                // 4. Delete the service_parts_used record
                 await db.promise().execute(
                     `DELETE FROM service_parts_used 
                      WHERE service_id = ? AND stock_id = ? AND item_id = ?`,
                     [serviceId, stockId, itemId]
                 );
 
-                // 4. Delete the corresponding inventory_release records
+                // 5. Delete the corresponding inventory_release records
                 await db.promise().execute(
                     `DELETE FROM inventory_release 
                      WHERE service_id = ? AND stock_id = ? AND item_id = ?`,
                     [serviceId, stockId, itemId]
                 );
 
-                // 5. Restore the quantity to inventory_stock
+                // 6. Restore the quantity to inventory_stock
                 await db.promise().execute(
                     `UPDATE inventory_stock 
                      SET available_qty = available_qty + ? 
@@ -629,7 +639,7 @@ exports.deleteServicePart = async (req, res) => {
                     [quantity_used, stockId]
                 );
 
-                // 6. Update the invoice
+                // 7. Update the invoice
                 const [partsResult] = await db.promise().execute(
                     `SELECT 
                         spu.stock_id, spu.quantity_used,
@@ -716,6 +726,11 @@ exports.generateServiceInvoice = async (req, res) => {
                 if (serviceResult.length === 0) {
                     throw new Error("Service record not found");
                 }
+                
+                // Check if service is already completed
+                if (serviceResult[0].status === 'completed') {
+                    throw new Error("This service record is already completed and cannot be modified");
+                }
 
                 // Calculate parts total price
                 const [partsResult] = await db.promise().execute(
@@ -774,12 +789,18 @@ exports.generateServiceInvoice = async (req, res) => {
                         ]
                     );
                 }
+                
+                // Update service record status to completed
+                await db.promise().execute(
+                    `UPDATE service_record SET status = 'completed' WHERE record_id = ?`,
+                    [serviceId]
+                );
 
                 // Get the updated invoice details with parts used
                 const [fullInvoice] = await db.promise().execute(
                     `SELECT 
                         i.*, sr.vehicle_number, sr.service_description, sr.date_ as service_date,
-                        sr.millage, sr.next_service_date,
+                        sr.millage, sr.next_service_date, sr.status,
                         vp.make, vp.model, vp.owner_ as owner
                      FROM invoice i
                      JOIN service_record sr ON i.service_id = sr.record_id
@@ -961,6 +982,69 @@ exports.getVehicleTypeServiceReport = async (req, res) => {
         });
     } catch (error) {
         console.error("Vehicle Type Service Report Error:", error);
+        res.status(500).json({ message: "Server Error", error: error.message });
+    }
+};
+
+exports.updateServiceRecord = async (req, res) => {
+    try {
+        if (!req.user) {
+            return res.status(401).json({ message: "Unauthorized: User not found in request" });
+        }
+
+        const { serviceId } = req.params;
+        const { vehicle_number, service_description, date_, next_service_date, millage } = req.body;
+
+        // Validate required fields
+        if (!vehicle_number || !service_description || !date_) {
+            return res.status(400).json({ message: "Vehicle number, service description, and date are required" });
+        }
+
+        const db = req.db;
+        
+        // First check if the service record exists and if it's completed
+        const [serviceResult] = await db.promise().execute(
+            "SELECT * FROM service_record WHERE record_id = ?",
+            [serviceId]
+        );
+        
+        if (serviceResult.length === 0) {
+            return res.status(404).json({ message: "Service record not found" });
+        }
+        
+        // Check if service is already completed
+        if (serviceResult[0].status === 'completed') {
+            return res.status(400).json({ message: "This service record is already completed and cannot be modified" });
+        }
+        
+        // Update the service record
+        db.execute(
+            `UPDATE service_record 
+             SET vehicle_number = ?, 
+                 service_description = ?, 
+                 date_ = ?, 
+                 next_service_date = ?, 
+                 millage = ?
+             WHERE record_id = ?`,
+            [vehicle_number, service_description, date_, next_service_date || null, millage || 0, serviceId],
+            (err, result) => {
+                if (err) {
+                    console.error("Update Service Record Error:", err);
+                    return res.status(500).json({ message: "Server Error", error: err });
+                }
+                
+                if (result.affectedRows === 0) {
+                    return res.status(404).json({ message: "Service record not found" });
+                }
+                
+                res.status(200).json({ 
+                    message: "Service record updated successfully",
+                    record_id: serviceId
+                });
+            }
+        );
+    } catch (error) {
+        console.error("Update Service Record Error:", error);
         res.status(500).json({ message: "Server Error", error: error.message });
     }
 }; 

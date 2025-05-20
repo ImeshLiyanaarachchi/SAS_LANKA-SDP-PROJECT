@@ -14,6 +14,7 @@ exports.createAppointment = async (req, res) => {
 
         const {
             vehicle_number,
+            vehicle_type,
             service_type,
             phone_number,
             appointment_date,
@@ -61,12 +62,13 @@ exports.createAppointment = async (req, res) => {
                 // If time slot is available, create the appointment
                 db.execute(
                     `INSERT INTO appointment (
-                        user_id, vehicle_number, service_type, phone_number, status_,
+                        user_id, vehicle_number, vehicle_type, service_type, phone_number, status_,
                         appointment_date, appointment_time
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
                     [
                         req.user.user_id,
                         vehicle_number,
+                        vehicle_type,
                         service_type,
                         phone_number || req.user.phone_number, // Use provided phone number or user's phone number
                         status_,
@@ -147,7 +149,7 @@ exports.getAppointmentsByUserId = async (req, res) => {
         const { userId } = req.params;
         
         // Check if user is admin or requesting their own appointments
-        if (req.user.role !== 'admin' && parseInt(userId) !== req.user.user_id) {
+        if (req.user.role !== 'admin' && req.user.role !== 'technician' && parseInt(userId) !== req.user.user_id) {
             return res.status(403).json({ message: "Forbidden: You can only view your own appointments" });
         }
 

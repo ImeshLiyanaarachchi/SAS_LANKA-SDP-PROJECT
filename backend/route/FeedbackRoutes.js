@@ -1,31 +1,23 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { authenticateUser } = require('../middleware/AuthMiddleware');
+const { authenticateUser } = require("../middleware/AuthMiddleware");
 const {
     createFeedback,
     getAllFeedback,
+    getUserFeedback,
     getFeedbackById,
-    getFeedbackByUserId,
     updateFeedback,
-    deleteFeedback
-} = require('../controller/FeedbackController');
+    deleteFeedback,
+    getFeedbackStats
+} = require("../controller/FeedbackController");
 
-// Create new feedback (requires authentication)
-router.post('/', authenticateUser, createFeedback);
-
-// Get all feedback
-router.get('/', getAllFeedback);
-
-// Get feedback by ID
-router.get('/:id', getFeedbackById);
-
-// Get feedback by user ID
-router.get('/user/:userId', getFeedbackByUserId);
-
-// Update feedback (requires authentication)
-router.put('/:id', authenticateUser, updateFeedback);
-
-// Delete feedback (requires authentication)
-router.delete('/:id', authenticateUser, deleteFeedback);
+// Feedback routes
+router.post("/", authenticateUser, createFeedback);
+router.get("/", authenticateUser, getAllFeedback); // Admin only (checked in controller)
+router.get("/stats", authenticateUser, getFeedbackStats); // Admin only (checked in controller)
+router.get("/user", authenticateUser, getUserFeedback);
+router.get("/:feedbackId", authenticateUser, getFeedbackById);
+router.put("/:feedbackId", authenticateUser, updateFeedback);
+router.delete("/:feedbackId", authenticateUser, deleteFeedback);
 
 module.exports = router; 

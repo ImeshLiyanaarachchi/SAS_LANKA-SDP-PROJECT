@@ -90,7 +90,7 @@ exports.getAllVehicleProfiles = async (req, res) => {
         const db = req.db;
         
         // If user is admin, show all vehicles; otherwise, show only user's vehicles
-        const query = req.user.role === 'admin' 
+        const query = req.user.role === 'admin' || req.user.role === 'technician'
             ? "SELECT * FROM vehicle_profile ORDER BY make, model"
             : "SELECT * FROM vehicle_profile WHERE user_id = ? ORDER BY make, model";
         
@@ -118,11 +118,11 @@ exports.getVehicleProfileByNumber = async (req, res) => {
         const db = req.db;
         
         // If user is admin, allow access to any vehicle; otherwise, restrict to user's vehicles
-        const query = req.user.role === 'admin'
+        const query = req.user.role === 'admin' || req.user.role === 'technician'
             ? "SELECT * FROM vehicle_profile WHERE vehicle_number = ?"
             : "SELECT * FROM vehicle_profile WHERE vehicle_number = ? AND user_id = ?";
         
-        const params = req.user.role === 'admin' 
+        const params = req.user.role === 'admin' || req.user.role === 'technician'
             ? [vehicleNumber] 
             : [vehicleNumber, req.user.user_id];
         
@@ -175,7 +175,7 @@ exports.getVehicleProfilesByUser = async (req, res) => {
         const db = req.db;
         
         // If user is admin or requesting their own vehicles, proceed
-        if (req.user.role !== 'admin' && parseInt(userId) !== req.user.user_id) {
+        if (req.user.role !== 'admin' && req.user.role !== 'technician' && parseInt(userId) !== req.user.user_id) {
             return res.status(403).json({ 
                 message: "Forbidden: You can only view your own vehicles" 
             });
@@ -220,11 +220,11 @@ exports.updateVehicleProfile = async (req, res) => {
         const db = req.db;
         
         // Check if vehicle exists and user has permission to update it
-        const query = req.user.role === 'admin'
+        const query = req.user.role === 'admin' || req.user.role === 'technician'
             ? "SELECT * FROM vehicle_profile WHERE vehicle_number = ?"
             : "SELECT * FROM vehicle_profile WHERE vehicle_number = ? AND user_id = ?";
         
-        const params = req.user.role === 'admin' 
+        const params = req.user.role === 'admin' || req.user.role === 'technician'
             ? [vehicleNumber] 
             : [vehicleNumber, req.user.user_id];
         
@@ -296,11 +296,11 @@ exports.deleteVehicleProfile = async (req, res) => {
         const db = req.db;
         
         // Check if vehicle exists and user has permission to delete it
-        const query = req.user.role === 'admin'
+        const query = req.user.role === 'admin' || req.user.role === 'technician'
             ? "SELECT * FROM vehicle_profile WHERE vehicle_number = ?"
             : "SELECT * FROM vehicle_profile WHERE vehicle_number = ? AND user_id = ?";
         
-        const params = req.user.role === 'admin' 
+        const params = req.user.role === 'admin' || req.user.role === 'technician'
             ? [vehicleNumber] 
             : [vehicleNumber, req.user.user_id];
         
@@ -359,7 +359,7 @@ exports.getDetailedVehicleProfiles = async (req, res) => {
         const db = req.db;
         
         // If user is admin, show all vehicles; otherwise, show only user's vehicles
-        const query = req.user.role === 'admin' 
+        const query = req.user.role === 'admin' || req.user.role === 'technician'
             ? "SELECT * FROM vehicle_profile ORDER BY make, model"
             : "SELECT * FROM vehicle_profile WHERE user_id = ? ORDER BY make, model";
         
@@ -433,7 +433,7 @@ exports.getVehiclesByType = async (req, res) => {
         const db = req.db;
         
         // Search query that looks for partial matches in make and model
-        const query = req.user.role === 'admin'
+        const query = req.user.role === 'admin' || req.user.role === 'technician'
             ? `SELECT * FROM vehicle_profile 
                WHERE make LIKE ? OR model LIKE ? 
                ORDER BY make, model`
@@ -442,7 +442,7 @@ exports.getVehiclesByType = async (req, res) => {
                ORDER BY make, model`;
         
         const searchPattern = `%${searchTerm}%`;
-        const params = req.user.role === 'admin'
+        const params = req.user.role === 'admin' || req.user.role === 'technician'
             ? [searchPattern, searchPattern]
             : [searchPattern, searchPattern, req.user.user_id];
         
